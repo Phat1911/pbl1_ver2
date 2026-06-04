@@ -175,7 +175,6 @@ void menu_chuc_nang(){
     printf(" %-3d | %-45s\n",4,"Dijkstra tim duong ngan nhat");
     printf(" %-3d | %-45s\n",5,"Prim tim cay khung nho nhat");
     printf(" %-3d | %-45s\n",6,"Kruskal tim cay khung nho nhat");
-    printf(" %-3d | %-45s\n",7,"In ma tran trong so");
     printf(" %-3d | %-45s\n",0,"Quay lai menu ban dau");
     line();
     printf(CYAN);
@@ -239,6 +238,12 @@ void chay_menu_chuc_nang(int n,double g[][MAX_N],int che_do_xuat){
     do{
         menu_chuc_nang();
         scanf("%d",&chon);
+        if (chon < 0 || chon > 6) {
+            printf(RED);
+            printf("Lua chon khong hop le! Vui long nhap lai.\n");
+            printf(RESET);
+            continue;
+        }
         if(chon==1){
             int s;
             printf("Nhap dinh bat dau: ");
@@ -270,6 +275,12 @@ void chay_menu_chuc_nang(int n,double g[][MAX_N],int che_do_xuat){
             int s,t;
             printf("Nhap dinh dau va cuoi: ");
             scanf("%d %d",&s,&t);
+            if (s < 1 || s > n || t < 1 || t > n) {
+                printf(RED);
+                printf("Dinh dau/cuoi khong hop le! Vui long nhap lai.\n");
+                printf(RESET);
+                continue;
+            }
             thuc_hien_thuat_toan(che_do_xuat,n,g,4,s-1,t-1);
         }
         else if(chon==5){
@@ -278,10 +289,6 @@ void chay_menu_chuc_nang(int n,double g[][MAX_N],int che_do_xuat){
         else if(chon==6){
             thuc_hien_thuat_toan(che_do_xuat,n,g,6,0,0);
         }
-        else if(chon==7){
-            thuc_hien_thuat_toan(che_do_xuat,n,g,7,0,0);
-        }
-
         if(chon!=0){
             pause_screen();
             clear_screen();
@@ -353,18 +360,18 @@ void in_mt(int n,double g[][MAX_N]){
     printf("                MA TRAN TRONG SO\n");
     printf("\n");
     printf(RESET);
-    printf("%5s"," ");
+    printf("%3s"," ");
     for(int i=0;i<n;i++){
-        printf("%5d",i+1);
+        printf("%7d",i+1);
     }
     printf("\n");
-    for(int i=0;i<n;i++){
-        printf("%5d",i+1);
-        for(int j=0;j<n;j++){
-            printf("%8.2f",g[i][j]);
-        }
-        printf("\n");
-    }
+   for(int i=0;i<n;i++){
+       printf("%3d",i+1);
+       for(int j=0;j<n;j++){
+           printf("%7.2f",g[i][j]);
+       }
+       printf("\n");
+   }
     line();
 }
 
@@ -789,9 +796,15 @@ signed main(){
     do{
         menu_nhap();
         scanf("%d",&chon);
+        if (chon < 0 || chon > 3) {
+            printf(RED);
+            printf("Lua chon khong hop le! Vui long nhap lai.\n");
+            printf(RESET);
+            continue;
+        }
         if(chon==1){
             int che_do_xuat;
-        
+
             int n;
             printf(CYAN);
             printf("Nhap so dinh n (2..100): ");
@@ -802,9 +815,16 @@ signed main(){
             nhap_mt(n,g);
             menu_xuat();
             scanf("%d",&che_do_xuat);
+            if (che_do_xuat < 0 || che_do_xuat > 2) {
+                printf(RED);
+                printf("Lua chon khong hop le! Vui long nhap lai.\n");
+                printf(RESET);
+                continue;
+            }
             if(che_do_xuat==0){
                 continue;
             }
+            in_mt(n,g);
             chay_menu_chuc_nang(n,g,che_do_xuat);
         }
         else if(chon==2){
@@ -824,16 +844,23 @@ signed main(){
                 printf(RESET);
                 menu_xuat();
                 scanf("%d",&che_do_xuat);
+                if (che_do_xuat < 0 || che_do_xuat > 2) {
+                    printf(RED);
+                    printf("Lua chon khong hop le! Vui long nhap lai.\n");
+                    printf(RESET);
+                    continue;
+                }
                 if(che_do_xuat==0){
                     continue;
                 }
+                in_mt(n,g);
                 chay_menu_chuc_nang(n,g,che_do_xuat);
             }else{
                 printf(RED);
                 printf("Khong the doc file .dat nay.\n");
                 printf(RESET);
             }
-            
+
         }
         else if(chon==3){
             int n;
@@ -857,6 +884,7 @@ signed main(){
             if(che_do_xuat==0){
                 continue;
             }
+            in_mt(n,g);
                 chay_menu_chuc_nang(n,g,che_do_xuat);
         }
     }while(chon!=0);
