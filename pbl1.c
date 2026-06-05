@@ -17,13 +17,14 @@ typedef struct{
     ll u,v;
     double w;
 }Canh;
-#define RESET   "\033[0m"
-#define RED     "\033[1;31m"
-#define GREEN   "\033[1;32m"
-#define YELLOW  "\033[1;33m"
-#define BLUE    "\033[1;34m"
-#define PURPLE  "\033[1;35m"
-#define CYAN    "\033[1;36m"
+#define RESET   "\033[30;47m"
+#define BLACK   "\033[30;47m"
+#define RED     "\033[31;47m"
+#define GREEN   "\033[32;47m"
+#define YELLOW  "\033[33;47m"
+#define BLUE    "\033[34;47m"
+#define PURPLE  "\033[35;47m"
+#define CYAN    "\033[36;47m"
 
 static FILE *g_algo_out = NULL;
 static int g_output_to_file = 0;
@@ -789,7 +790,10 @@ void kruskal(int n,double g[][MAX_N]){
 }
 
 signed main(){
+    system("color f0");
     srand(time(NULL));
+    printf("\033[30;47m");
+    printf("\033[2J\033[H");
     clear_screen();
     header_big();
     int chon;
