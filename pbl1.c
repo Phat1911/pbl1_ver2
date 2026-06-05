@@ -9,6 +9,7 @@
 #ifdef _WIN32
 #include <direct.h>
 #endif
+
 typedef long long ll;
 
 #define MAX_N 100
@@ -16,7 +17,8 @@ typedef long long ll;
 typedef struct{
     ll u,v;
     double w;
-}Canh;
+} Canh;
+
 #define RESET   "\033[30;47m"
 #define BLACK   "\033[30;47m"
 #define RED     "\033[31;47m"
@@ -26,9 +28,49 @@ typedef struct{
 #define PURPLE  "\033[35;47m"
 #define CYAN    "\033[36;47m"
 
+
 static FILE *g_algo_out = NULL;
 static int g_output_to_file = 0;
 static char g_result_path[512] = {0};
+
+int is_ansi_color_token(const char *fmt);
+void algo_printf(const char *fmt, ...);
+void algo_line();
+void algo_print_double(double value);
+void line();
+void clear_screen();
+void pause_screen();
+void luu_duong_dan_result();
+void bao_cao_da_ghi_file(void);
+
+#define printf(...) algo_printf(__VA_ARGS__)
+
+void header_big();
+void menu_nhap();
+void menu_xuat();
+void menu_chuc_nang();
+
+void clr(int n, double g[][MAX_N]);
+void nhap_mt(int n, double g[][MAX_N]);
+void tao_ngau_nhien(int n, double wmax, double g[][MAX_N]);
+int doc_mt_tu_file(const char *ten_file, int *n, double g[][MAX_N]);
+void xuat_mt(FILE *out, int n, double g[][MAX_N]);
+void in_mt(int n, double g[][MAX_N]);
+int lien_thong(int n, double g[][MAX_N]);
+void dfs(int n, double g[][MAX_N], int u, int vis[]);
+int goc(int par[], int x);
+void hop(int par[], int rank[], int a, int b);
+int cmp(const void *a, const void *b);
+
+void cay_dfs(int n, double g[][MAX_N], int s);
+void cay_bfs(int n, double g[][MAX_N], int s);
+int la_euler(int n, double g[][MAX_N]);
+void dijkstra(int n, double g[][MAX_N], int s, int t);
+void prim(int n, double g[][MAX_N]);
+void kruskal(int n, double g[][MAX_N]);
+
+void thuc_hien_thuat_toan(int che_do_xuat, int n, double g[][MAX_N], int chon, int s, int t);
+void chay_menu_chuc_nang(int n, double g[][MAX_N], int che_do_xuat);
 
 int is_ansi_color_token(const char *fmt){
     return fmt == RED || fmt == GREEN || fmt == YELLOW || fmt == BLUE || fmt == PURPLE || fmt == CYAN || fmt == RESET;
@@ -39,7 +81,6 @@ void algo_printf(const char *fmt, ...){
     if(out != stdout && is_ansi_color_token(fmt)){
         return;
     }
-
     va_list args;
     va_start(args, fmt);
     vfprintf(out, fmt, args);
@@ -60,36 +101,26 @@ void algo_print_double(double value){
     }
 }
 
-void xuat_mt(FILE *out,int n,double g[][MAX_N]){
-    fprintf(out, "                MA TRAN TRONG SO\n");
-    fprintf(out, "%5s", " ");
-    for(int i=0;i<n;i++){
-        fprintf(out, "%5d", i+1);
-    }
-    fprintf(out, "\n");
-    for(int i=0;i<n;i++){
-        fprintf(out, "%5d", i+1);
-        for(int j=0;j<n;j++){
-            fprintf(out, "%8.2f", g[i][j]);
-        }
-        fprintf(out, "\n");
-    }
-    fprintf(out, "============================================================\n");
+void line(){
+    algo_printf(CYAN);
+    algo_line();
+    algo_printf(RESET);
 }
 
-void menu_xuat(){
-    printf("\n");
-    line();
+void clear_screen(){
+    #ifdef _WIN64
+        system("cls");
+    #else
+        system("clear");
+    #endif
+}
+
+void pause_screen(){
     printf(YELLOW);
-    printf(" %-3s | %-45s\n","STT","PHUONG THUC XUAT KET QUA");
-    printf(GREEN);
-    printf(" %-3d | %-45s\n",1,"In truc tiep len console");
-    printf(" %-3d | %-45s\n",2,"Ghi vao file result.dat");
-    printf(" %-3d | %-45s\n",0,"Quay lai menu nhap");
-    line();
-    printf(CYAN);
-    printf("Nhap lua chon: ");
+    printf("\nNhan ENTER de tiep tuc...");
     printf(RESET);
+    getchar();
+    getchar();
 }
 
 void luu_duong_dan_result(){
@@ -108,18 +139,11 @@ void luu_duong_dan_result(){
 #endif
 }
 
-void clear_screen(){
-    #ifdef _WIN64
-        system("cls");
-    #else
-        system("clear");
-    #endif
-}
-
-void line(){
-    algo_printf(CYAN);
-    algo_line();
-    algo_printf(RESET);
+void bao_cao_da_ghi_file(void){
+    luu_duong_dan_result();
+    printf(GREEN);
+    printf(">>> Da hoan thanh. Ket qua duoc ghi tai: %s\n", g_result_path);
+    printf(RESET);
 }
 
 void header_big(){
@@ -143,7 +167,7 @@ void header_big(){
     printf(CYAN);
     printf("           Lop                  : 25T_DT2\n");
     printf("\n");
-    printf("                        Da Nang 06/2026\n");
+    printf("                       Da Nang 06/2026\n");
     line();
     printf(RESET);
 }
@@ -158,6 +182,21 @@ void menu_nhap(){
     printf(" %-3d | %-45s\n",2,"Doc du lieu tu file (.dat)");
     printf(" %-3d | %-45s\n",3,"Tao ma tran ngau nhien");
     printf(" %-3d | %-45s\n",0,"Ket thuc chuong trinh");
+    line();
+    printf(CYAN);
+    printf("Nhap lua chon: ");
+    printf(RESET);
+}
+
+void menu_xuat(){
+    printf("\n");
+    line();
+    printf(YELLOW);
+    printf(" %-3s | %-45s\n","STT","PHUONG THUC XUAT KET QUA");
+    printf(GREEN);
+    printf(" %-3d | %-45s\n",1,"In truc tiep len console");
+    printf(" %-3d | %-45s\n",2,"Ghi vao file result.dat");
+    printf(" %-3d | %-45s\n",0,"Quay lai menu nhap");
     line();
     printf(CYAN);
     printf("Nhap lua chon: ");
@@ -183,122 +222,63 @@ void menu_chuc_nang(){
     printf(RESET);
 }
 
-void bao_cao_da_ghi_file(void){
-    luu_duong_dan_result();
-    printf(GREEN);
-    printf(">>> Da hoan thanh. Ket qua duoc ghi tai: %s\n", g_result_path);
+void clr(int n, double g[][MAX_N]){
+    for(int i=0;i<n;i++){
+        for(int j=0;j<n;j++){
+            g[i][j]=0.0;
+        }
+    }
+}
+
+void nhap_mt(int n, double g[][MAX_N]){
+    clr(n,g);
+    line();
+    printf(YELLOW);
+    printf("NHAP MA TRAN DOI XUNG\n");
+    printf("\n");
     printf(RESET);
-}
+    for(int i=0;i<n;i++){
+        for(int j=i+1;j<n;j++){
+            double w;
+            int nhap_dung = 0;
 
-void thuc_hien_thuat_toan(int che_do_xuat,int n,double g[][MAX_N],int chon,int s,int t){
-    if(che_do_xuat==2){
-        g_output_to_file = 1;
-        g_algo_out = fopen("result.dat","w");
-        if(g_algo_out == NULL){
-            g_output_to_file = 0;
-            g_algo_out = NULL;
-            printf(RED);
-            printf("Khong the tao file result.dat\n");
-            printf(RESET);
-            return;
+            while (!nhap_dung) {
+                printf("a[%d][%d]= ", i+1, j+1);
+                if (scanf("%lf", &w) != 1) {
+                    printf(RED);
+                    printf("Loi: Du lieu khong hop le! Vui long nhap mot so.\n");
+                    printf(RESET);
+                    int c;
+                    while ((c = getchar()) != '\n' && c != EOF);
+                } else {
+                    nhap_dung = 1;
+                }
+            }
+
+            if(w<0.0) w=0.0;
+            g[i][j]=w;
+            g[j][i]=w;
         }
-    }
-
-    in_mt(n,g);
-
-    if(chon==1){
-        cay_dfs(n,g,s);
-    }
-    else if(chon==2){
-        cay_bfs(n,g,s);
-    }
-    else if(chon==3){
-        la_euler(n,g);
-    }
-    else if(chon==4){
-        dijkstra(n,g,s,t);
-    }
-    else if(chon==5){
-        prim(n,g);
-    }
-    else if(chon==6){
-        kruskal(n,g);
-    }
-
-    if(che_do_xuat==2){
-        fflush(g_algo_out);
-        fclose(g_algo_out);
-        g_algo_out = NULL;
-        g_output_to_file = 0;
-        bao_cao_da_ghi_file();
     }
 }
 
-void chay_menu_chuc_nang(int n,double g[][MAX_N],int che_do_xuat){
-    int chon;
-    do{
-        menu_chuc_nang();
-        scanf("%d",&chon);
-        if (chon < 0 || chon > 6) {
-            printf(RED);
-            printf("Lua chon khong hop le! Vui long nhap lai.\n");
-            printf(RESET);
-            continue;
-        }
-        if(chon==1){
-            int s;
-            printf("Nhap dinh bat dau: ");
-            scanf("%d",&s);
-            if (s < 1 || s > n) {
-                printf(RED);
-                printf("Dinh bat dau khong hop le! Vui long nhap lai.\n");
-                printf(RESET);
-                continue;
-            }
-            thuc_hien_thuat_toan(che_do_xuat,n,g,1,s-1,0);
-        }
-        else if(chon==2){
-            int s;
-            printf("Nhap dinh bat dau: ");
-            scanf("%d",&s);
-            if (s < 1 || s > n) {
-                printf(RED);
-                printf("Dinh bat dau khong hop le! Vui long nhap lai.\n");
-                printf(RESET);
-                continue;
-            }
-            thuc_hien_thuat_toan(che_do_xuat,n,g,2,s-1,0);
-        }
-        else if(chon==3){
-            thuc_hien_thuat_toan(che_do_xuat,n,g,3,0,0);
-        }
-        else if(chon==4){
-            int s,t;
-            printf("Nhap dinh dau va cuoi: ");
-            scanf("%d %d",&s,&t);
-            if (s < 1 || s > n || t < 1 || t > n) {
-                printf(RED);
-                printf("Dinh dau/cuoi khong hop le! Vui long nhap lai.\n");
-                printf(RESET);
-                continue;
-            }
-            thuc_hien_thuat_toan(che_do_xuat,n,g,4,s-1,t-1);
-        }
-        else if(chon==5){
-            thuc_hien_thuat_toan(che_do_xuat,n,g,5,0,0);
-        }
-        else if(chon==6){
-            thuc_hien_thuat_toan(che_do_xuat,n,g,6,0,0);
-        }
-        if(chon!=0){
-            pause_screen();
-            clear_screen();
-            header_big();
-            if(che_do_xuat==1){
-                in_mt(n,g);
+void tao_ngau_nhien(int n, double wmax, double g[][MAX_N]){
+    clr(n,g);
+    for(int i=1;i<n;i++){
+        int p=rand()%i;
+        double w=((double)rand() / RAND_MAX) * wmax;
+        g[i][p]= w;
+        g[p][i]= w;
+    }
+    for(int i=0;i<n;i++){
+        for(int j=i+1;j<n;j++){
+            if(g[i][j]==0.0){
+                double w=((double)rand() / RAND_MAX) * wmax;
+                g[i][j]= w;
+                g[j][i]= w;
             }
         }
-    }while(chon!=0);
+    }
 }
 
 int doc_mt_tu_file(const char *ten_file, int *n, double g[][MAX_N])
@@ -335,23 +315,24 @@ int doc_mt_tu_file(const char *ten_file, int *n, double g[][MAX_N])
     return 1;
 }
 
-void pause_screen(){
-    printf(YELLOW);
-    printf("\nNhan ENTER de tiep tuc...");
-    printf(RESET);
-    getchar();
-    getchar();
-}
-
-void clr(int n,double g[][MAX_N]){
+void xuat_mt(FILE *out, int n, double g[][MAX_N]){
+    fprintf(out, "                MA TRAN TRONG SO\n");
+    fprintf(out, "%5s", " ");
     for(int i=0;i<n;i++){
-        for(int j=0;j<n;j++){
-            g[i][j]=0.0;
-        }
+        fprintf(out, "%5d", i+1);
     }
+    fprintf(out, "\n");
+    for(int i=0;i<n;i++){
+        fprintf(out, "%5d", i+1);
+        for(int j=0;j<n;j++){
+            fprintf(out, "%8.2f", g[i][j]);
+        }
+        fprintf(out, "\n");
+    }
+    fprintf(out, "============================================================\n");
 }
 
-void in_mt(int n,double g[][MAX_N]){
+void in_mt(int n, double g[][MAX_N]){
     if(g_output_to_file && g_algo_out != NULL){
         xuat_mt(g_algo_out,n,g);
         return;
@@ -376,47 +357,7 @@ void in_mt(int n,double g[][MAX_N]){
     line();
 }
 
-#define printf(...) algo_printf(__VA_ARGS__)
-
-void nhap_mt(int n,double g[][MAX_N]){
-    clr(n,g);
-    line();
-    printf(YELLOW);
-    printf("NHAP MA TRAN DOI XUNG\n");
-    printf("\n");
-    printf(RESET);
-    for(int i=0;i<n;i++){
-        for(int j=i+1;j<n;j++){
-            double w;
-            printf("a[%d][%d]= ",i+1,j+1);
-            scanf("%lf",&w);
-            if(w<0.0) w=0.0;
-            g[i][j]=w;
-            g[j][i]=w;
-        }
-    }
-}
-
-void tao_ngau_nhien(int n,double wmax,double g[][MAX_N]){
-    clr(n,g);
-    for(int i=1;i<n;i++){
-        int p=rand()%i;
-        double w=((double)rand() / RAND_MAX) * wmax;
-        g[i][p]= w;
-        g[p][i]= w;
-    }
-    for(int i=0;i<n;i++){
-        for(int j=i+1;j<n;j++){
-            if(g[i][j]==0.0){
-                double w=((double)rand() / RAND_MAX) * wmax;
-                g[i][j]= w;
-                g[j][i]= w;
-            }
-        }
-    }
-}
-
-int lien_thong(int n,double g[][MAX_N]){
+int lien_thong(int n, double g[][MAX_N]){
     int *vis=calloc(n,sizeof(int));
     int *q=malloc(n*sizeof(int));
     int dau=0,cuoi=0;
@@ -439,7 +380,7 @@ int lien_thong(int n,double g[][MAX_N]){
     return dem==n;
 }
 
-void dfs(int n,double g[][MAX_N],int u,int vis[]){
+void dfs(int n, double g[][MAX_N], int u, int vis[]){
     vis[u]=1;
     printf("Tham dinh %d\n",u+1);
     for(int v=0;v<n;v++){
@@ -450,7 +391,38 @@ void dfs(int n,double g[][MAX_N],int u,int vis[]){
     }
 }
 
-void cay_dfs(int n,double g[][MAX_N],int s){
+int goc(int par[], int x){
+    while(x!=par[x]){
+        par[x]=par[par[x]];
+        x=par[x];
+    }
+    return x;
+}
+
+void hop(int par[], int rank[], int a, int b){
+    int ga=goc(par,a);
+    int gb=goc(par,b);
+    if(ga==gb) return;
+    if(rank[ga]<rank[gb]){
+        par[ga]=gb;
+    }else if(rank[ga]>rank[gb]){
+        par[gb]=ga;
+    }else{
+        par[gb]=ga;
+        rank[ga]++;
+    }
+}
+
+int cmp(const void *a, const void *b) {
+    const Canh *x = (const Canh*)a;
+    const Canh *y = (const Canh*)b;
+
+    if (x->w < y->w) return -1;
+    if (x->w > y->w) return 1;
+    return 0;
+}
+
+void cay_dfs(int n, double g[][MAX_N], int s){
     int *vis=calloc(n,sizeof(int));
     int *cha=malloc(n*sizeof(int));
     Canh *ds=malloc((n-1)*sizeof(Canh));
@@ -503,7 +475,7 @@ void cay_dfs(int n,double g[][MAX_N],int s){
     free(ds);
 }
 
-void cay_bfs(int n,double g[][MAX_N],int s){
+void cay_bfs(int n, double g[][MAX_N], int s){
     int *vis=calloc(n,sizeof(int));
     int *q=malloc(n*sizeof(int));
     int *cha=malloc(n*sizeof(int));
@@ -550,7 +522,7 @@ void cay_bfs(int n,double g[][MAX_N],int s){
     free(ds);
 }
 
-int la_euler(int n,double g[][MAX_N]){
+int la_euler(int n, double g[][MAX_N]){
     printf("Kiem tra Euler: truoc tien phai lien thong va moi dinh co bac chan\n");
     if(!lien_thong(n,g)){
         printf("Do thi khong lien thong\n");
@@ -573,7 +545,7 @@ int la_euler(int n,double g[][MAX_N]){
     return 1;
 }
 
-void dijkstra(int n,double g[][MAX_N],int s,int t){
+void dijkstra(int n, double g[][MAX_N], int s, int t){
     double inf = INFINITY;
     double *d = malloc(n * sizeof(double));
     int *truoc = malloc(n * sizeof(int));
@@ -646,7 +618,7 @@ void dijkstra(int n,double g[][MAX_N],int s,int t){
     free(vis);
 }
 
-void prim(int n,double g[][MAX_N]){
+void prim(int n, double g[][MAX_N]){
     double inf = INFINITY;
     int *chon = calloc(n, sizeof(int));
     double *khoa = malloc(n * sizeof(double));
@@ -704,38 +676,7 @@ void prim(int n,double g[][MAX_N]){
     free(truoc);
 }
 
-int goc(int par[],int x){
-    while(x!=par[x]){
-        par[x]=par[par[x]];
-        x=par[x];
-    }
-    return x;
-}
-
-void hop(int par[],int rank[],int a,int b){
-    int ga=goc(par,a);
-    int gb=goc(par,b);
-    if(ga==gb) return;
-    if(rank[ga]<rank[gb]){
-        par[ga]=gb;
-    }else if(rank[ga]>rank[gb]){
-        par[gb]=ga;
-    }else{
-        par[gb]=ga;
-        rank[ga]++;
-    }
-}
-
-int cmp(const void *a, const void *b) {
-    const Canh *x = (const Canh*)a;
-    const Canh *y = (const Canh*)b;
-
-    if (x->w < y->w) return -1;
-    if (x->w > y->w) return 1;
-    return 0;
-}
-
-void kruskal(int n,double g[][MAX_N]){
+void kruskal(int n, double g[][MAX_N]){
     int mmax=n*(n-1)/2;
     Canh *ds=malloc(mmax*sizeof(Canh));
     int *par=malloc(n*sizeof(int));
@@ -789,6 +730,117 @@ void kruskal(int n,double g[][MAX_N]){
     free(rank);
 }
 
+void thuc_hien_thuat_toan(int che_do_xuat, int n, double g[][MAX_N], int chon, int s, int t){
+    if(che_do_xuat==2){
+        g_output_to_file = 1;
+        g_algo_out = fopen("result.dat","w");
+        if(g_algo_out == NULL){
+            g_output_to_file = 0;
+            g_algo_out = NULL;
+            printf(RED);
+            printf("Khong the tao file result.dat\n");
+            printf(RESET);
+            return;
+        }
+    }
+
+    in_mt(n,g);
+
+    if(chon==1){
+        cay_dfs(n,g,s);
+    }
+    else if(chon==2){
+        cay_bfs(n,g,s);
+    }
+    else if(chon==3){
+        la_euler(n,g);
+    }
+    else if(chon==4){
+        dijkstra(n,g,s,t);
+    }
+    else if(chon==5){
+        prim(n,g);
+    }
+    else if(chon==6){
+        kruskal(n,g);
+    }
+
+    if(che_do_xuat==2){
+        fflush(g_algo_out);
+        fclose(g_algo_out);
+        g_algo_out = NULL;
+        g_output_to_file = 0;
+        bao_cao_da_ghi_file();
+    }
+}
+
+void chay_menu_chuc_nang(int n, double g[][MAX_N], int che_do_xuat){
+    int chon;
+    do{
+        menu_chuc_nang();
+        scanf("%d",&chon);
+        if (chon < 0 || chon > 6) {
+            printf(RED);
+            printf("Lua chon khong hop le! Vui long nhap lai.\n");
+            printf(RESET);
+            continue;
+        }
+        if(chon==1){
+            int s;
+            printf("Nhap dinh bat dau: ");
+            scanf("%d",&s);
+            if (s < 1 || s > n) {
+                printf(RED);
+                printf("Dinh bat dau khong hop le! Vui long nhap lai.\n");
+                printf(RESET);
+                continue;
+            }
+            thuc_hien_thuat_toan(che_do_xuat,n,g,1,s-1,0);
+        }
+        else if(chon==2){
+            int s;
+            printf("Nhap dinh bat dau: ");
+            scanf("%d",&s);
+            if (s < 1 || s > n) {
+                printf(RED);
+                printf("Dinh bat dau khong hop le! Vui long nhap lai.\n");
+                printf(RESET);
+                continue;
+            }
+            thuc_hien_thuat_toan(che_do_xuat,n,g,2,s-1,0);
+        }
+        else if(chon==3){
+            thuc_hien_thuat_toan(che_do_xuat,n,g,3,0,0);
+        }
+        else if(chon==4){
+            int s,t;
+            printf("Nhap dinh dau va cuoi: ");
+            scanf("%d %d",&s,&t);
+            if (s < 1 || s > n || t < 1 || t > n) {
+                printf(RED);
+                printf("Dinh dau/cuoi khong hop le! Vui long nhap lai.\n");
+                printf(RESET);
+                continue;
+            }
+            thuc_hien_thuat_toan(che_do_xuat,n,g,4,s-1,t-1);
+        }
+        else if(chon==5){
+            thuc_hien_thuat_toan(che_do_xuat,n,g,5,0,0);
+        }
+        else if(chon==6){
+            thuc_hien_thuat_toan(che_do_xuat,n,g,6,0,0);
+        }
+        if(chon!=0){
+            pause_screen();
+            clear_screen();
+            header_big();
+            if(che_do_xuat==1){
+                in_mt(n,g);
+            }
+        }
+    }while(chon!=0);
+}
+
 signed main(){
     system("color f0");
     srand(time(NULL));
@@ -808,7 +860,6 @@ signed main(){
         }
         if(chon==1){
             int che_do_xuat;
-
             int n;
             printf(CYAN);
             printf("Nhap so dinh n (2..100): ");
@@ -837,8 +888,18 @@ signed main(){
             char ten_file[256];
             double g[MAX_N][MAX_N];
 
+            printf("\n");
+            line();
+            printf(YELLOW);
+            printf(" HUONG DAN CAU TRUC FILE DO THI (.dat):\n");
+            printf(RESET);
+            printf(" - Dong 1          : So dinh cua do thi.\n");
+            printf(" - n dong tiep theo: Ma tran trong so kich thuoc n x n.\n");
+            printf(" (Luu y: Cac gia tri cach nhau boi khoang trang hoac tab)\n");
+            line();
+
             printf(CYAN);
-            printf("Nhap duong dan file .dat (luu y: dong dau tien la n, sau do la n dong chua cac hang cua ma tran trong so): ");
+            printf("Nhap duong dan file .dat: ");
             printf(RESET);
             scanf("%255s",ten_file);
 
@@ -889,7 +950,7 @@ signed main(){
                 continue;
             }
             in_mt(n,g);
-                chay_menu_chuc_nang(n,g,che_do_xuat);
+            chay_menu_chuc_nang(n,g,che_do_xuat);
         }
     }while(chon!=0);
     printf(GREEN);
